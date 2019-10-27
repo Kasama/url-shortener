@@ -1,10 +1,6 @@
 (ns url-shortener.core
   (:require [org.httpkit.server :refer [run-server]]
-            [compojure.core :refer [defroutes, GET]]
-            [compojure.route :as route]
-            [ring.middleware.defaults :refer :all]
-            ; [clojure.pprint :as pp]
-            [clojure.data.json :as json]
+            [url-shortener.router :refer [app-routes]]
   )
   (:gen-class)
   )
@@ -13,30 +9,16 @@
   (Integer/parseInt (or (System/getenv "PORT") "8080"))
   )
 
-(defn wrap-response
-  [status resp]
-  {:status status
-   :headers {"Content-Type" "application/json"}
-   :body resp
-   }
+(defn alias_length []
+  (Integer/parseInt (or (System/getenv "SHORTENED_LENGTH") "6"))
   )
 
-(defn root
-  [_]
-  (wrap-response 200 "{\"hello\": \"world\"}")
-  )
-
-(defroutes app-routes
-  (GET "/" [] root)
-  (route/not-found "{\"Error\": \"Not Found\"}")
-  )
-
-(batata "hello")
+(def configured_routes (app-routes {:alias_length (alias_length)}))
 
 (defn -main
   [& _]
   (let [port (get-port)]
-    (run-server #'app-routes {:port port})
+    (run-server #'configured_routes {:port port})
     (println (str "Server started on port " port))
     )
   )
